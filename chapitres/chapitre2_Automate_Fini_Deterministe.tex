@@ -1,0 +1,170 @@
+\chapter{Automate Fini Déterministe}
+
+\minitoc % Ajoute le sommaire local ici
+
+\setlength{\parindent}{0pt}
+\renewcommand{\labelitemi}{\textbullet} % Utiliser des points noirs (•)
+
+
+% ==================================================================================================================================
+% Introduction 
+
+Comme abordé dans le chapitre précédent, on cherche une méthode pratique et efficace pour déterminer si un mot appartient 
+à un langage ou pas. On veut donc un modèle qui soit d'une part très pratique mathématiquement pour nous permettre de 
+démontrer des choses dessus mais aussi facilemet implémentable algorithmiquement. 
+
+Alerte Spoiler : de solides connaissances en théorie des graphes seront plus qu'utiles...
+
+
+% ==================================================================================================================================
+% Définition et représentation
+
+\section{Définition et représentation}
+
+\begin{definition}[Automate fini déterministe]
+    Un Automate Fini Déterministe est un quintuplet :
+        \[ \boxed{ \mathcal{A} = (\Sigma, Q, T, q_0, A) } \] 
+    où :
+    \begin{itemize}
+        \item $\Sigma$ est un alphabet 
+        \item $Q$ est un ensemble fini d'états (souvent une partie finie de $\N$)
+        \item $T : Q \times \Sigma \longrightarrow Q$ est une application qui, à un état et une lettre associe un autre état. 
+        \item $q_0$ un état initial
+        \item $A \subseteq Q$ les états acceptants
+    \end{itemize}
+\end{definition}
+
+On représentera ainsi un automate fini déterministe de plusieurs façons en fonction de son utilisation :
+\begin{itemize}
+    \item \textbf{Mathématique : } $\mathcal{A} = (\Sigma, Q, T, q_0, A) $
+    \item \textbf{Table de Transition : } Elle va permettre de trouver rapidement les différents types d'états. 
+    \item \textbf{Sagitale : } Sous forme de graphe 
+    \item \textbf{En Python : } Nous représenterons les automates finis déterministes sous la forme de quintuplet aussi. 
+\end{itemize}
+Regardons en détail ces différentes représentations au travers d'un exemple. 
+
+\newpage 
+
+
+\begin{example}
+    Soit $\mathcal{A} = (\Sigma, Q, T, q_0, A)$ un automate fini déterministe. 
+
+    \textbf{Mathématiquement} nous avons :
+    \begin{itemize}
+        \item $Q = \{1,2,3\}$ 
+        \item $\Sigma = \{a,b\}$ 
+        \item $q_0 = 1$ 
+        \item $A = \{3\}$ 
+    \end{itemize}
+    
+    La représentation \textbf{sagitale}  de notre automate sera :
+        
+        \begin{center}
+            \begin{figure}[h]
+                \centering
+                \begin{tikzpicture}[shorten >=1pt, node distance=2cm, on grid, auto]
+    
+                    % Définitions des styles d'états
+                    \node[state, initial] (1) {1};
+                    \node[state, right=of 1] (2) {2};
+                    \node[state, accepting, right=of 2] (3) {3};
+                
+                    % Définition des transitions
+                    \path[->]
+                    (1) edge[above] node{a} (2)
+                    (2) edge[above] node{b} (3)
+                    (2) edge[loop above] node{a} ()
+                    (1) edge[loop above] node{b} ()
+                    (3) edge[loop above] node{a} ()
+                    (3) edge[loop below] node{b} ();
+                
+                \end{tikzpicture}
+            \end{figure}
+        \end{center}
+
+    On représente de façon doublement cerclée les états acceptants. Les états sont les sommets du graphe. 
+    Les arcs valués sont les antécédants/images de la fonction $T$. 
+
+    Enfin, la \textbf{table de transition} de l'automate est représentée par le tableau suivant :
+    \begin{multicols}{2}
+        \begin{center}
+            \begin{tabular}{c|c|c}
+                Q/$\Sigma$ & a & b \\ \hline 
+                1 & 2 & 3 \\ \hline 
+                2 & 2 & 3 \\ \hline 
+                \textbf{3} & 3 & 3 
+            \end{tabular}
+        \end{center}
+
+        La première ligne présente les lettres de l'alphabet et la première colonne les différents états. 
+        Pour chaque état, le tableau donne l'état obtenu en fonction de la lettre suivante lue. 
+    \end{multicols}
+\end{example}
+
+% ==================================================================================================================================
+% Mots et Langage Automatique
+
+\section{Mot et Langage Automatique}
+
+\subsection{Lecture d'un mot}
+
+\begin{definition}[Lecture d'un mot]
+    Soit $\Sigma$ un dictionnaire, $l \in \Sigma$ et $\mathcal{A}$ un automate. 
+    On lit la lettre $l$ en dérivant d'un état $q \in Q$ vers un état $q' \in Q$ et si $T(q,l) = q'$. 
+    On notera la lecture d'un mot de longueur $p$ par la lecture successive de ses lettres :
+        \[ q_1 \;  \overset{l_1}{\longrightarrow} \; q_2 \; \dots \; q_{p-1} \; \overset{l_p}{\longrightarrow} \; q_p \] 
+\end{definition}
+
+Concrètement, pour la lecture d'un mot, on va partir de l'état initial et en fonction des valeurs de l'état courant et de 
+la lettre lue, on va "bouger" d'un état (sommet) à un autre.
+
+\begin{definition}[Mot refusé]
+    Un mot $w \in \Sigma^*$ est dit refusé par un automate $\mathcal{A}$ si sa lecture à partir de l'état initial 
+    se termine sur un état refusant ou ne se termine pas. Dans le cas contraire, $w$ est dit accepté. 
+\end{definition}
+
+\begin{definition}[Langage d'un Automate]
+    Le langage d'un automate $\mathcal{A}$ est l'ensemble des mots acceptés par l'automate. 
+    On le note $L(\mathcal{A})$. 
+\end{definition}
+
+On parle de \textbf{langage automatique} si il est reconnaissable par un automate. 
+Deux automates sont dits \textbf{équivalents} si ils reconnaissent le même langage. 
+
+\subsection{Automate Complet}
+
+\begin{definition}[Automate Complet]
+    Un automate $\mathcal{A}$ est dit complet si 
+        \[ \forall i \in Q, \forall l \in \Sigma, \quad T(i,l) \text{ est défini} \] 
+    Autrement dit, un automate est dit complet si pour toute lettre et pour tout état fixés, il est possible de 
+    changer d'état dans l'automate.  
+\end{definition} 
+
+\begin{definition}[Puit]
+    Un état $q \in Q$ est un puit ssi 
+        \[ \forall l \in \Sigma, \quad T(q,l) = q \]
+    Un puit est un état duquel on ne peut sortir. 
+\end{definition}
+
+On définit aussi la notion de piège comme un puit refusant (i.e un puit dont l'état est refusant). 
+
+\subsection{Complémentaire}
+
+Puisque la notion de complémentaire existe pour les langages et que les automates semblent très étroitement liés 
+aux langages, on peut se demander si un automate peut admettre un complémentaire... 
+
+Soit $\mathcal{A}$ un automate associé à un langage L. On cherche $\mathcal{A}' = \overline{\mathcal{A}}$. 
+    \[ w \in \overline{\mathcal{A}} \iff w \not \in L \iff w \not \in L(\mathcal{A}) \] 
+Il semble falloir que $\mathcal{A}$ soit complet. Si c'est le cas, on pourrait inverser $\mathcal{A}$ en inversant 
+les sommets accpetants/refusants. 
+
+\begin{proposition}
+    Tout automate fini peut être complété par des puits refusants en un automate complet. 
+\end{proposition}
+
+\begin{theorem}[Complémentarité]
+    L'ensemble des automates est stable par complémentarité. 
+\end{theorem}
+
+
+% TODO : Ajouter section émonder un automate 

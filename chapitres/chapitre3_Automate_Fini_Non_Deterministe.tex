@@ -1,0 +1,327 @@
+\chapter{Automate Fini Non Déterministe}
+
+\minitoc % Ajoute le sommaire local ici
+
+\setlength{\parindent}{0pt}
+\renewcommand{\labelitemi}{\textbullet} % Utiliser des points noirs (•)
+
+
+% ==================================================================================================================================
+% Introduction 
+
+Dans le chapitre précédent nous avons vu un modèle très efficace pour vérifier l'appartenance d'un mot à un langage. 
+En plus d'être facilement représentable en mémoire (i.e Python), il est facile à utiliser à la main et 
+hérite de toute la théorie des graphes vue précédement ce qui en fait un très beau modèle mathématiquement parlant. 
+
+Malgré tout cela, nous ne savons pas comment, à partir de plusieurs langages simples, constituer un automate 
+reconnaissant la somme de ces langages. Nous n'avons pas défini de somme/union d'automate et celles-ci semblent 
+assez difficiles vu la rigidité de notre modèle. 
+
+Nous allons donc construire un modèle d'automate, appelé non déterministe, nous permettant de faire ces opérations 
+d'union (que nous appelerons juxtaposition). Elles nous permettrons de construire des automates complexes à partir de 
+somme de langages. 
+
+% ==================================================================================================================================
+% Définitions et propriétés
+
+\section{Généralités}
+
+\subsection{Définitions}
+
+\begin{definition}[AFN]
+    Un automate fini non déterministe $ \mathcal{A}$ est un quintuplet : 
+        \[ \mathcal{A} := (Q,\Sigma, T,I,A) \] 
+    tel que :
+    \begin{itemize}
+        \item $Q$ est l'ensemble des états de l'automate 
+        \item $\Sigma$ est un alphabet 
+        \item $T : Q \times \Sigma \longrightarrow \mathcal{P}(Q)$ est une application 
+        \item $I \subseteq Q$ est l'ensemble des états initiaux 
+        \item $A \subseteq Q$ est l'ensemble des états acceptants. 
+    \end{itemize}
+\end{definition}
+
+\begin{remark}
+    Plusieurs remarques concernant ce nouveau modèle. Premièrement, on remarque que l'on peut maintenant définir 
+    des transitions multiples entre les états de l'automate. Deuxièmement, il existe plusieurs états initiaux. 
+\end{remark}
+
+\subsection{Lecture d'un mot}
+
+\begin{definition}[Arbre de lecture]
+    Soient $w \in \Sigma^*$, $L$ un langage sur $\Sigma$ et $ \mathcal{A}$ un automate reconnaissant $L$.
+    L'arbre de lecture de $w$ par $ \mathcal{A}$ est l'arbre résultat du parcours de $ \mathcal{A}$ en fonction 
+    des lettres de $w$. 
+    
+    Autrement dit dans l'arbre de lecture G de $w$, un noeud $a$ est le fils d'un 
+    noeud $b$ si il existe une lettre $l$ de $w$ telle que $T(b,l) = a$. Une feuille de cet arbre est un état acceptant 
+    ou refusant de l'automate. 
+\end{definition}
+
+\begin{definition}[Lecture acceptante]
+    Soient $w \in \Sigma^*$, $L$ un langage sur $\Sigma$ et $ \mathcal{A}$ un automate reconnaissant $L$. 
+    Une lecture de $w$ par $ \mathcal{A}$ est dite acceptante si \underline{il existe} un chemin 
+    d'un état initial vers un état acceptant dans l'arbre de lecture de $w$ par $ \mathcal{A}$. 
+\end{definition}
+
+\begin{proposition}
+    On peut dire plusieurs choses de la lecture d'un mot $w \in \Sigma^*$ par un automate $ \mathcal{A}$ :
+    \begin{itemize}
+        \item Si l'automate possède plusieurs états initiaux, la lecture produit un arbre de lecture pour chaque 
+        état initial, nous auront donc une \underline{forêt d'arbres de lecture}. 
+        \item Une lecture sera donc acceptante ssi il existe un arbre de la forêt dont au moins une des feuilles
+        est un état acceptant. 
+    \end{itemize}
+\end{proposition}
+
+\begin{example}
+    Voyons tout cela sur un exemple. Soit $ \mathcal{A} := (Q,\Sigma, T,I,A)$ un automate fini non déterministe $ \mathcal{A}$
+    sur l'alphabet $\Sigma : \{a,b\}$. Représentons notre automate sous forme de graphe orienté valué et sa table de transition :
+    \begin{center}
+        \begin{minipage}{0.45\textwidth} % Colonne pour le dessin
+            \begin{tikzpicture}[shorten >=1pt, node distance=3cm, on grid, auto]
+    
+                % Définitions des styles d'états
+                \node[state, initial] (1) {1};
+                \node[state, accepting, right=of 1] (2) {2};
+                \node[state, below=of 1] (3) {3};
+                \node[state, initial, right=of 3] (4) {4};
+            
+                % Définition des transitions
+                \path[->]
+                (1) edge[above] node{$a$} (2)
+                (1) edge[left] node{$a$} (3)
+                (2) edge[right] node{$a$} (4)
+                (3) edge[below] node{$b$} (4)
+                (4) edge[sloped, below left] node{$b$} (1)
+                (4) edge[loop below] node{$b$} (4);
+            
+            \end{tikzpicture}
+        \end{minipage}%
+        \hfill 
+        \begin{minipage}{0.45\textwidth} % Colonne pour le tableau
+            \begin{tabular}{c|c|c}
+                T & a & b \\ \hline 
+                $1$ & $\{2,3\}$ & X \\ \hline 
+                \textcircled{2} & $4$ & X \\ \hline 
+                $3$ & X & $4$ \\ \hline 
+                $4$ & X & $\{1,4\}$ 
+            \end{tabular}
+        \end{minipage}
+    \end{center}
+    C'est un automate non déterministe puisqu'il contient deux transitions mutliples et deux états initiaux. 
+
+    Posons $w := abba$, déterminons si ce mot appartient au langage $L( \mathcal{A})$. Nous allons construire 
+    un seul arbre permettant d'avoir une condition suffisante de validation du mot. 
+
+    \begin{center}
+        \begin{minipage}{0.45\textwidth}
+            \begin{tikzpicture}[scale=0.8, transform shape, shorten >=1pt, node distance=3cm, on grid, auto]
+                
+                % Racine
+                \node[state, initial] (1) {1};
+    
+                % 1er niveau
+                \node[state] (2) [below right=2cm and 2cm of 1] {2};
+                \node[state] (3) [below left=2cm and 2cm of 1] {3};
+    
+                % 2nd niveau
+                \node[state] (x1) [below=2cm of 2] {X};
+                \node[state] (4) [below=2cm of 3] {4};
+                
+                % 3eme niveau 
+                \node[state] (42) [below left=2cm and 2cm of 4] {4};
+                \node[state] (12) [below right=2cm and 2cm of 4] {1};
+    
+                % 4 eme niveau 
+                \node[state] (22) [below right=2cm and 2cm of 12] {2};
+                \node[state] (32) [below left=2cm and 2cm of 12] {3};
+                \node[state] (x2) [below=2cm of 42] {X}; 
+    
+                % Branches
+                \path[->]
+                (1) edge[left] node{a} (2)
+                (1) edge[left] node{a} (3)
+                (2) edge[left] node{b} (x1)
+                (3) edge[left] node{b} (4)
+                (4) edge[left] node{b} (12)
+                (4) edge[left] node{b} (42)
+                (12) edge[left] node{a} (22)
+                (12) edge[left] node{a} (32)
+                (42) edge[left] node{a} (x2);
+    
+            \end{tikzpicture}
+        \end{minipage}
+        \hfill 
+        \begin{minipage}{0.45\textwidth}
+            L'arbre de lecture du mot $abba$ contient un état acceptant comme feuille. 
+
+            \vspace{1cm}
+
+            Autrement dit, il existe un chemin menant d'un état initial à un état acceptant dans la forêt de lecture 
+            de $abba$. Donc $abba \in L( \mathcal{A})$. 
+        \end{minipage}        
+    \end{center}
+\end{example}
+
+% ==================================================================================================================================
+% Juxtaposition et construction d'un AFD
+
+\section{Juxtaposition et construction d'un AFD}
+
+\subsection{Juxtaposition}
+
+Rappelons la problématique principale du chapitre. On cherche un modèle dérivant des AFD nous permettant de définir 
+des opérations dessus et qui puisse être convertit algorithmiquement vers un AFD pour construire des automates 
+d'un langage complexe à partir de langages plus simple. 
+
+Autrement dit, on veut pouvoir appliquer l'opération de somme de langages sur les automates fini déterministes. 
+
+\begin{definition}[Juxtaposition d'AFN]
+    Soient $L_1$ et $L_2$ deux langages reconnus par deux automates $ \mathcal{A}_1$ et $ \mathcal{A}_2$. 
+    Le langage $L_1 + L_2$ est reconnu par la \textbf{juxtaposition disjointe} de $ \mathcal{A}_1$ et $ \mathcal{A}_2$. 
+\end{definition}
+
+\begin{theorem}[Langages automatiques et stabilité]
+    L'ensemble des langages automatiques est stable par somme. 
+\end{theorem}
+
+On peut maintenant, à partir de deux langages automatiques, définir le nouveau langage résultant de 
+la somme des deux qui sera lui aussi automatique. Il suffit de faire la juxtaposition disjointe des deux automates
+de départ. 
+
+\subsection{Déterminisation}
+
+\begin{theorem}[Existence et équivalence]
+    Pour tout automate fini non déterministe, il existe un automate déterministe équivalent. 
+\end{theorem}
+
+Ce théorème est peut être un peu obscur mais permet de dire qu'il est toujours possible de passer d'un 
+automate fini non déterministe (obtenu par exemple par juxtaposition) à un automate fini déterministe
+qui reconnaisse le même langage. En tout cas, il nous dit qu'il en existe un...
+
+\vspace{0.3cm}
+
+L'intérêt de vouloir repasser chez les automates fini déterministes vient du fait que la lecture d'un mot par 
+un AFN est de complexité exponentielle alors que la lecture d'un mot par un AFD est polynômiale... 
+Lors de la vérification syntaxique de très long mots pour des langages très complexes, cela fait une différence 
+cruciale pour la compilation. 
+
+Ce processus est appelé \textbf{déterminisation} d'un AFN. 
+
+\begin{proposition}
+    Soit $ \mathcal{A} = (Q, \Sigma, T, I, A)$ un AFN. On cherche à construire un AFD $ \mathcal{A}'$ équivalent à $ \mathcal{A}$. 
+    L'idée est de raisonner sur l'application $T : Q \times \Sigma \longrightarrow \Q$. Dans un AFN, cette application 
+    n'est pas injective, on va donc poser une nouvelle application dans l'espace quotient de $Q \times \Sigma$ par le noyau de $T$. 
+    Nous obtiendrons donc une application injective et donc un AFD. 
+\end{proposition}
+
+\newpage 
+
+\begin{example}[Déterminisation]
+    Soit $ \mathcal{A}$ l'automate défini sur l'alphabet $\Sigma = \{ a,b \}$ non déterministe et sa table 
+    de transition suivants : 
+
+    \begin{center}
+        \begin{minipage}{0.45\textwidth} % Colonne pour le dessin
+            \begin{tikzpicture}[shorten >=1pt, node distance=3cm, on grid, auto]
+    
+                % Définitions des styles d'états
+                \node[state, initial] (1) {1};
+                \node[state, accepting, right=of 1] (2) {2};
+                \node[state, initial, below=of 1] (3) {3};
+                \node[state, right=of 3] (4) {4};
+            
+                % Définition des transitions
+                \path[->]
+                (1) edge[above] node{$a$} (2)
+                (1) edge[left] node{$a$} (3)
+                (2) edge[right] node{$a$} (4)
+                (3) edge[below] node{$b$} (4)
+                (4) edge[sloped, below left] node{$b$} (1)
+                (4) edge[loop below] node{$b$} (4)
+                (2) edge[loop above] node{$b$} (2)
+                (3) edge[loop below] node{$a$} (3);
+            
+            \end{tikzpicture}
+        \end{minipage}%
+        \hfill 
+        \begin{minipage}{0.45\textwidth} % Colonne pour le tableau
+            \begin{tabular}{c|c|c}
+                T & a & b \\ \hline 
+                $1$ & $\{2,3\}$ & X \\ \hline 
+                \textcircled{2} & $4$ & $2$ \\ \hline 
+                $3$ & $3$ & $4$ \\ \hline 
+                $4$ & X & $\{1,4\}$ 
+            \end{tabular}
+        \end{minipage}
+    \end{center}
+
+    Déterminisons cet automate. Pour cela, nous allons renommer tous les états de l'automate en prenant en 
+    compte les ensembles. 
+    L'algorithme consiste donc à construire la table de transition du nouvel automate. 
+    Pour chaque itération (i.e ajout d'une ligne dans la table), on effectue un parcours en largeur du nouvel automate 
+    pour "découvrir" de nouveau état. On créé ainsi un "automate des parties". 
+
+    \begin{figure}[h]
+    \begin{center}
+        \begin{minipage}{0.45\textwidth}
+            \begin{tabular}{c|c|c}
+                & a & b \\ \hline 
+                $I = \{1,3\}$ & $II$ & $III$ \\ 
+                $II = \{2,3\}$ & $IV$ & $V$ \\ 
+                $III = \{4\}$ & - & $VI$ \\ 
+                $IV = \{3,4\}$ & $VII$ & $VI$ \\ 
+                $V = \{2,4\}$ & $III$ & $ VIII$ \\ 
+                $VI = \{1,4\}$ & $ II$ & $VI$ \\ 
+                $VII = \{3\}$ & $VII$ & $III$ \\ 
+                $VIII = \{1,2,4\}$ & $IX$ & $VIII$ \\ 
+                $IX = \{2,3,4\}$ & $IV$ & $VIII$ 
+            \end{tabular}
+            \caption{Table de l'AFD}
+        \end{minipage}
+        \hfill 
+        \begin{minipage}{0.45\textwidth}
+            \begin{tikzpicture}[scale=0.8, transform shape, shorten >=1pt, node distance=3cm, on grid, auto]
+                % 1er niveau
+                \node[state] (I) {I};
+
+                % 2nd niveau
+                \node[state] (II) [below left=2cm and 2cm of I] {II};
+                \node[state] (III) [below right=2cm and 2cm of I] {III};
+
+                % 3eme niveau
+                \node[state] (IV) [below left=2cm and 2cm of II] {IV};
+                \node[state] (V) [below right=2cm and 2cm of II] {V};
+                \node[state] (VI) [below=2cm of III] {VI};
+
+                % 4eme niveau
+                \node[state] (VII) [below=2cm of IV] {VII};
+                \node[state] (VIII) [below=2cm of V] {VIII}; 
+
+                % 5eme niveau
+                \node[state] (IX) [below=2cm of VIII] {IX};
+                
+                % Branches 
+                \path[-]
+                (I) edge[left] node{a} (II)
+                (I) edge[left] node{b} (III)
+                (II) edge[left] node{a} (IV)
+                (II) edge[left] node{b} (V)
+                (III) edge[left] node{b} (VI)
+                (IV) edge[left] node{} (VII)
+                (V) edge[left] node{} (VIII)
+                (VIII) edge[left] node{} (IX);
+            \end{tikzpicture}
+            \caption{Automate des parties}
+        \end{minipage}
+    \end{center} 
+    \end{figure}
+\end{example}
+
+
+
+
+
+
+

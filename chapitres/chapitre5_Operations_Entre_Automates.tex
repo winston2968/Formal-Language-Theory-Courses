@@ -1,0 +1,258 @@
+\chapter{Opérations entre automates}
+
+\minitoc % Ajoute le sommaire local ici
+
+\setlength{\parindent}{0pt}
+\renewcommand{\labelitemi}{\textbullet} % Utiliser des points noirs (•)
+
+
+% ==================================================================================================================================
+% Introduction 
+
+Les chapitres précédents nous ont montré que les $\varepsilon$-transitions et les transitions multiples 
+nous permettent de modéliser plus facilement des langages complexes. 
+Nous allons donc définir des opérations sur les automates, analogues à celles sur les langages. 
+Elles nous permettront, à partir de la construction d'un langage par opérations, de construire son automate par 
+opérations aussi. 
+
+\vspace{0.3cm}
+
+\textbf{Problématique : } Soient $L_1$ et $L_2$ deux langages reconnus respectivement par $ \mathcal{A}_2$ et $ \mathcal{A}_2$. 
+Soit $T$ une opération entre langages. Comment construire un automate reconnaissant $L_1 T L_2$ ? 
+
+% ==================================================================================================================================
+% Langage Elémentaires 
+
+\section{Langages Elémentaires}
+
+Pour définir des opérations sur les automates, et ainsi, construire un automate par opérations pour un langage 
+lui-même construit par opérations, nous allons avoir besoin de définir des langages élémentaires. 
+Ces langages seront reconnus par des automates fixés, que nous connaissons d'avance. Nous en choisissons un nombre fini 
+pour pouvoir les stocker en mémoire. Ils vont représenter les briques de base nous permettant de construire des automates plus 
+complexes par la suite. 
+
+\begin{proposition}[Langages Elémentaires]
+    Soit $\Sigma = \{a,b\}$ un alphabet. On définit les langages élémentaires de $\Sigma$ comme :
+    \begin{itemize}
+        \item $L = \emptyset$ reconnu par l'automate : 
+            \begin{center}
+                \begin{tikzpicture}[shorten >=1pt, node distance=3cm, on grid, auto]
+                    \node[state, initial] (1) {$1$};
+                \end{tikzpicture}
+            \end{center}
+        \item $L = \{\varepsilon\}$ reconnu par l'automate :
+            \begin{center}
+                \begin{tikzpicture}[shorten >=1pt, node distance=3cm, on grid, auto]
+                    \node[state, initial, accepting] (1) {$1$};
+                \end{tikzpicture}
+            \end{center}
+        \item $L = \{a\}$ reconnu par le langage :
+            \begin{center}
+                \begin{tikzpicture}[shorten >=1pt, node distance=3cm, on grid, auto]
+                    \node[state, initial] (1) {$1$};
+                    \node[state, accepting, right of =1] (2) {$2$}; 
+                    \path[->]
+                    (1) edge[above] node{$a$} (2);
+                \end{tikzpicture}
+            \end{center}
+        \item $L = \{a_1 \dots a_n\}$ reconnu par le langage :
+            \begin{center}
+                \begin{tikzpicture}[shorten >=1pt, node distance=3cm, on grid, auto]
+                    \node[state, initial] (1) {$1$};
+                    \node[state, right of =1] (2) {$2$}; 
+                    \node[state, right of=2] (3) {$a_n$};
+                    \node[state, accepting, right of=3] (4) {$n$};
+                    \path[->]
+                    (1) edge[above] node{$a_1$} (2)
+                    (2) edge[above] node{$a_2$} (3)
+                    (3) edge[above] node{$\dots$} (4);
+                \end{tikzpicture}
+            \end{center}
+    \end{itemize}
+\end{proposition}
+
+% ==================================================================================================================================
+% Langage complémentaire
+
+\section{Automate Complémentaire}
+
+A partir d'un langage, on peut définir son langage complémentaire. De même, on peut définir l'automate complémantaire 
+reconnaissant ce langage. 
+
+\begin{definition}[Automate Complémentaire]
+    Soit $L$ un langage reconnu un automate $ \mathcal{A} = (Q,\Sigma,T,q_0,A)$ \textbf{complet}. 
+    L'automate reconnaissant le langage complémentaire de $L$ est $ \overline{ \mathcal{A}} = (Q,\Sigma,T,q_0,Q \backslash A)$. 
+\end{definition}
+
+\begin{remark}
+    Attention, pouvoir "passer au complémentaire" pour un automate, il faut que celui-ci soit complet. 
+\end{remark}
+
+% ==================================================================================================================================
+% Somme d'automates
+
+\section{Somme d'automates}
+
+\begin{definition}[Somme d'automates]
+    Soient $L_1$ et $L_2$ deux langages respectivement reconnus par $ \mathcal{A}_1$ et $ \mathcal{A}_2$. 
+    L'automate reconnaissant $L_1 + L_2$ est l'automate fini non déterministe construit par \textbf{l'union disjointe}
+    de $ \mathcal{A}_1$ et $ \mathcal{ A}_2$. On l'appelle \textbf{automate somme} des automates $ \mathcal{A}_1$ 
+    et $ \mathcal{A}_2$. 
+\end{definition}
+
+Cet automate n'est pas déterministe puisqu'il contient deux états initiaux mais que l'on peut déterminiser. 
+
+\begin{example}
+    Soient les langages suivants sur $\Sigma = \{a,b\}$ :
+    \begin{align*}
+        L_1 &= \{ \text{mots de } \Sigma \text{ terminant par } a \} \\ 
+        L_2 &= \{ \text{mots de } \Sigma \text{contenant un nombre pair de } a \}
+    \end{align*}
+
+    Ces langages sont reconnus par les automates suivants :
+
+    \begin{center}
+        \begin{minipage}{0.45\textwidth}
+            \begin{tikzpicture}[shorten >=1pt, node distance=3cm, on grid, auto]
+                \node[state, initial] (1) {$1$};
+                \node[state, right of=1, accepting] (2) {$2$};
+                
+                \path[->]
+                (1) edge[above, bend right] node{$a$} (2)
+                (2) edge[above, bend right] node{$b$} (1)
+                (2) edge[loop right] node{$a$} (2)
+                (1) edge[loop above] node{$b$} (1); 
+            \end{tikzpicture}
+        \end{minipage}%
+        \hfill 
+        \begin{minipage}{0.45\textwidth}
+            \begin{tikzpicture}[shorten >=1pt, node distance=3cm, on grid, auto]
+                \node[state, initial] (1) {$1$};
+                \node[state, right of=1, accepting] (2) {$2$};
+                
+                \path[->]
+                (1) edge[above, bend right] node{$a$} (2)
+                (2) edge[above, bend right] node{$a$} (1)
+                (2) edge[loop right] node{$b$} (2)
+                (1) edge[loop above] node{$b$} (1); 
+            \end{tikzpicture}
+        \end{minipage}
+    \end{center}
+
+    On construit l'automate $ \mathcal{A}$ comme la juxtaposition disjointe des deux automates :
+    \begin{center}
+        \begin{minipage}{0.45\textwidth}
+            \begin{tikzpicture}[shorten >=1pt, node distance=3cm, on grid, auto]
+                \node[state, initial] (1) {$1$};
+                \node[state, right of=1, accepting] (2) {$2$};
+                
+                \path[->]
+                (1) edge[above, bend right] node{$a$} (2)
+                (2) edge[above, bend right] node{$b$} (1)
+                (2) edge[loop right] node{$a$} (2)
+                (1) edge[loop above] node{$b$} (1); 
+            \end{tikzpicture}
+        \end{minipage}%
+        \hfill 
+        \begin{minipage}{0.45\textwidth}
+            \begin{tikzpicture}[shorten >=1pt, node distance=3cm, on grid, auto]
+                \node[state, initial] (3) {$3$};
+                \node[state, right of=3, accepting] (4) {$4$};
+                
+                \path[->]
+                (3) edge[above, bend right] node{$a$} (4)
+                (4) edge[above, bend right] node{$a$} (1)
+                (4) edge[loop right] node{$b$} (4)
+                (3) edge[loop above] node{$b$} (3); 
+            \end{tikzpicture}
+        \end{minipage}
+    \end{center}
+
+    Que l'on doit ensuite déterminiser... 
+\end{example}
+
+Les définitions de langages élémentaires nous permettent de savoir que tout langage réduit à un mot est automatique. 
+On en déduit le théorème suivant : 
+
+\begin{theorem}[Langage Fini]
+    Tout langage fini est automatique. 
+\end{theorem}
+
+
+% ==================================================================================================================================
+% Intersection d'automates
+
+\section{Intersection d'Automates}
+
+\begin{proposition}
+    Soient $L_1$ et $L_2$ reconnus par les automates fini déterministes suivants $ \mathcal{A}_1$ et $ \mathcal{A}_2$. 
+    On a alors : 
+        \[ \overline{L_1 \cap L_2} = \overline{L_1} + \overline{L_2} \]
+    On peut donc en conclure que : 
+        \[ \boxed{L_1 \cap L_2 = \overline{\overline{L_1} + \overline{L_2}}} \]  
+    Ainsi, l'intersection de deux automates peut être construite par somme et complémentarité. 
+\end{proposition}
+
+En pratique nous utuliseront plutôt l'automate des couples : 
+
+\begin{definition}[Automate des Couples]
+    Soient $ \mathcal{A}_1 = \{Q_1, \Sigma, T_1, Q_0, A_1\}$ reconnaissant le langage $L_1$ et 
+    $ \mathcal{A}_2 = \{Q_2, \Sigma, T_2, q_0', A_2\}$ reconnaissant le langage $L_2$. On définit 
+    l'automate des couples : 
+        \[ A = \{Q_1 \times Q_2, \Sigma, T, (q_0,q_0'), A_1 \times A_2\} \] 
+    reconnaissant le langage $L_1 \cap L_2$ où 
+        \[ \forall i \in \Sigma, \forall q_1, q_2 \in Q_1, \forall q_1', q_2' \in Q_2 \text{ tels que } q_2 = T_1(q_1,j) \text{ et } q_2' = T(q_1',i) \]
+        \[ \text{alors } T'((q_1, q_1'), i) = (q_2, q_2') \] 
+\end{definition}
+
+\begin{proposition}
+    Si $ \mathcal{A}_1$ possède $n \in \N$ états et que $ \mathcal{A}_2$ possède $p \in \N$ états, alors 
+    $ \mathcal{A}_1 \cap \mathcal{A}_2$ possède $n \times p$ états. 
+    Pour de gros automates, cette méthode peut donc engendrer des très gros. 
+    Même si la façon de les construire est assez simple et ressemble beaucoup à la déterminisation. 
+
+    L'automate obtenu est, de plus, déterministe. 
+\end{proposition}
+
+
+% ==================================================================================================================================
+% Différences d'automates
+
+\section{Différence d'Automates}
+
+\begin{proposition}
+    Soient $ \mathcal{A}_1$ et  $ \mathcal{A}_2$ deux automates reconnaissant respectivement les langages $L_1$ et $L_2$. 
+    Pour reconnaître le langages $L_1 \backslash L_2$, on peut simplement construire l'automate reconnaissant :
+        \[ L_1 \backslash L_2 = L_1 \cap \overline{L_2} \] 
+\end{proposition}
+
+% ==================================================================================================================================
+% Langages Automatiques 
+
+\newpage
+
+\section{Langages Automatiques}
+
+Essayons maintenant de déduire des conditions nécessaire pour qu'un langage soit automatique. 
+D'après ce que l'on a vu grâce aux opérations, on peut déjà énoncer la proposition suivante : 
+\begin{proposition}
+    Les langages réguliers sont tous automatiques. 
+\end{proposition}
+
+Proposition que nous élargirons plus tard grâce au théorème de Kleene. 
+
+\subsection{Théorème de pompage}
+
+\begin{theorem}[Pompage (faible)]
+    Soit $L$ un langage. Supposons $L$ automatique. Soit $w \in L$ alors pour toute décomposition de $w$ de la forme :
+        \[\exists w_1, w_2, w_3 \in L, w = w_1 w_2 w_3 \]
+    \underline{alors} cette décomposition est gonflable. 
+        \[ \text{ i.e } \forall k \in \N, w_1 w_2 ^k w_3 \in L \]
+\end{theorem} 
+
+Ce théorème n'est pas idéal pour montrer qu'un langage est automatique. En revanche, sa contraposé de la forme :
+\begin{quote}
+    \textbf{Non Pompable $ \Longrightarrow $ Non Automatique}
+\end{quote}
+
+Est en pratique très utilisée pour montrer qu'un langage n'est pas automatique. 

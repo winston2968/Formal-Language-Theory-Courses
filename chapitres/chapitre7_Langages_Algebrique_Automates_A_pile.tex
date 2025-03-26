@@ -1,0 +1,140 @@
+\chapter{Langages Algébriques et Automates à Piles}
+
+\minitoc % Ajoute le sommaire local ici
+
+\setlength{\parindent}{0pt}
+\renewcommand{\labelitemi}{\textbullet} % Utiliser des points noirs (•)
+
+% ==================================================================================================================================
+% Introduction 
+
+Précédement, nous avons vu que les langages automatiques sont de très bonnes propriétés. Ils sont stables 
+pour la plupart des opérations définies sur les langages. De plus, le théorème de Kleene nous a permis d'établir 
+le lien direct entre langages automatiques et langages réguliers. 
+La simplicité de la représentation sagitale des automates permet de les implémenter facilement algorithmiquement. 
+Il sont, de plus, facile à manipuler à la main et permettent de rapidement "voir" les langages reconnus. 
+
+Cependant, cette simplicité a un certain coût, celui de ne pas pouvoir reconnaître des langages "compliqués", notamment
+ceux où il faut "compter" les lettres. Un automate fini déterministe ne peut donc pas reconnaître le langage composé 
+d'autant de $a$ que de $b$. 
+On va donc chercher à indroduire une nouvelle théorie, celle des \textbf{grammaires formelles} qui nous permettra
+de reconnaître de tels langages. 
+
+
+% ==================================================================================================================================
+% Grammaires Formelles
+
+\section{Grammaires Formelles}
+
+\subsection{Contexte et définition}
+
+Les grammaires formelles ont initialement été développés par des linguistes, notamment Noam Chomsky en 1955. 
+L'objectif était de développer un méthode systématique de traduction entre différentes langues. 
+Ils se sont alors heurtés au problème des mêmes mots qui admettent plusieurs traductions en fonction du contexte de la 
+phrase et n'ont pas pu aboutir leur oeuvre. 
+
+\vspace{0.3cm}
+
+Or en informatique, pour l'étude de la syntaxe de langages de programmation, le problème du contexte ne se pose pas. 
+Leur théorie a donc été récupérée pour la vérification syntaxique. 
+
+\vspace{0.3cm}
+
+L'idée est donc de représenter un langage \textbf{récursivement} par un ensemble de règles de production composées 
+d'un axiome de départ et de différentes règles de productions ou de réécriture. 
+
+Nous utilisons souvent cette approche pour la gestion de types en Caml en définissant tes types récurisivement. 
+
+\newpage 
+
+\begin{definition}[Grammaire Formelle]
+    Une grammaire formelle est un quadruplet 
+        \[ G = (\Sigma, V, S, P) \] 
+    où 
+    \begin{itemize}
+        \item $\Sigma$ est un \textbf{alphabet terminal} dont chaque élément ne peut se réécrire plus simplement. 
+        \item $V$ est \textbf{l'alphabet auxiliaire} (disjoint de $\Sigma$) composé de variables, qui ne 
+        peuvent pas non plus se réécrire. 
+        \item $S$ est la variable de départ, appelé axiome. 
+        \item $P$ est un ensemble de règles dites \textbf{de production} ou de réécriture du type 
+            \[ X \longrightarrow w \quad X \in V \text{ et } w \in \left( V \cup \Sigma \right)^* \] 
+    \end{itemize}
+\end{definition}
+
+Par convention, on notera toujours les variables en majuscule et les éléments terminaux en minuscules. 
+En pratique, on regroupera plusieurs réécritures d'une même variable sur la même ligne en les séparant par 
+des barres verticales de la forme :
+    \[ X \longrightarrow w_1 | w_2 | \dots | w_p \iff 
+        \begin{cases}
+            X \longrightarrow w_1 \\ 
+            X \longrightarrow w_2 \\ 
+            \vdots \\ 
+            W \longrightarrow w_p 
+        \end{cases}
+    \] 
+
+
+\subsection{Réécriture d'un mot et langages algébriques}
+
+L'obectif d'une grammaire formelle, vous l'aure compris, est de réécrire un mot récursivement jusqu'à arriver à des 
+éléments terminaux. 
+
+\begin{definition}[Réécriture d'un mot]
+    Soit $ G = (\Sigma, V, S, P)$ une grammaire formelle. Soient $u,v \in \left( V \cup \Sigma \right)^*$ deux mots. 
+    On dit que \textbf{$u$ peut se réécrire en $v$ en une étape} et on note :
+        \[ u \vdash v \] 
+    si il existe des décompositions de $u$ et $v$ en 
+        \[ u = u_1 X u_2 \text{ et } v = u_1 w u_2 \] 
+    et que $G$ contient la règle de production :
+        \[ X \longrightarrow w \] 
+\end{definition}
+
+Plus généralement, on peut définir la réécriture en plusieurs étapes de la forme : 
+
+\begin{definition}[Réécriture (2)]
+    Soit $ G = (\Sigma, V, S, P)$ une grammaire formelle. Soient $u,v \in \left( V \cup \Sigma \right)^*$ deux mots.
+    On dit que \textbf{$u$ peut se réécrire en $v$} ou que \textbf{$v$ dérive en $u$} en un nombre quelconque de fois si 
+    il existe $u_1, \dots, u_p \in \left( V \cup \Sigma \right)^*$ tels que 
+        \[ u \vdash u_1 \vdash u_2 \vdash \dots \vdash u_p \vdash v \] 
+    On note alors 
+        \[ u \overset{*}{\vdash} v \] 
+\end{definition}
+
+On peut maintetant définir les langages engendrés par des grammaires formelles et les langages algébriques, le coeur de ce 
+chapitre. 
+
+\begin{definition}[Langage Engendré]
+    La \textbf{langage engendré} par une grammaire formelle $ G = (\Sigma, V, S, P)$ est l'ensemble des mots de $\Sigma^*$ 
+    qui dérivent de l'axiome $S$ en un nombre quelconque d'étapes. On le note, comme pour les automates, en $L(G)$. 
+\end{definition}
+
+\begin{definition}[Langage Algébrique]
+    Un langage engendré par une grammaire est appelé \textbf{langage algébrique}. 
+\end{definition}
+
+
+
+\subsection{Arbre de dérivation d'un mot}
+
+\begin{definition}[Arbre de dérivation d'un mot]
+    Soit $ G = (\Sigma, V, S, P)$ une grammaire formelle. On appelle l'arbre de dérivation de $w \in Sigma^*$ l'arbre dont :
+    \begin{itemize}
+        \item La racine est $S$ 
+        \item Tous les sommets intérieurs appartiennent à $V$ 
+        \item Toutes les feuilles appartiennent à $\Sigma \cup \{\varepsilon\}$ 
+        \item Si un sommet intérieur $X$ a pour fils $X_1, \dots, X_p$ alors la règle 
+            \[ X \longrightarrow X_1 | \dots | X_p \in P \] 
+        \item Le mot obtenu en visitant les feuilles de l'arbre par un parcours profondeur préfixe de l'arbre 
+            est un mot de $L(G)$
+    \end{itemize}
+\end{definition}
+
+\begin{definition}[Grammaire Ambiguë]
+    Soit $G$ une grammaire. On dit que $G$ est ambiguë s'il existe un mot $w_ \in L(G)$ possédant
+    deux arbres de dérivation différents. 
+\end{definition}
+
+En pratique une telle grammaire est pas très utilisée. En effet, en informatique, il ne serait pas très pratique 
+de pouvoir compiler un code en deux expressions différentes d'un autre langage. On ne saurait pas laquelle choisir. 
+Il faut que la dérivation puisse se faire de façon unique.
+
