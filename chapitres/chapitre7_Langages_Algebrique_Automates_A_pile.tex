@@ -45,7 +45,6 @@ d'un axiome de départ et de différentes règles de productions ou de réécrit
 
 Nous utilisons souvent cette approche pour la gestion de types en Caml en définissant tes types récurisivement. 
 
-\newpage 
 
 \begin{definition}[Grammaire Formelle]
     Une grammaire formelle est un quadruplet 
@@ -88,6 +87,8 @@ L'obectif d'une grammaire formelle, vous l'aure compris, est de réécrire un mo
     et que $G$ contient la règle de production :
         \[ X \longrightarrow w \] 
 \end{definition}
+
+\newpage 
 
 Plus généralement, on peut définir la réécriture en plusieurs étapes de la forme : 
 
@@ -339,12 +340,12 @@ dérivation d'un mot et prennent beaucoup de temps et de place à exécuter.
             \end{cases} \] 
 \end{example}
 
-
-
 \subsection{Règle 2 : Élimination des cycles}
 
 Dans les arbres de dérivation, les cycles peuveut conduire à des dérivations infinies. 
 On va donc chercher à les supprimer. 
+
+\newpage 
 
 \begin{definition}[Règle 2 : Élimination des cycles]
     Soit $G$ une grammaire formelle. On définit l'algorithme suivant pour 
@@ -397,7 +398,6 @@ On va donc chercher à les supprimer avec la règle 3.
                 A \longrightarrow Ab | b 
             \end{cases} \] 
 \end{example}
-
 
 
 \subsection{Forme Normale de Chomsky}

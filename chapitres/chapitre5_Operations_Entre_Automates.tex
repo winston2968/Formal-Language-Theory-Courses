@@ -244,15 +244,23 @@ Proposition que nous élargirons plus tard grâce au théorème de Kleene.
 \subsection{Théorème de pompage}
 
 \begin{theorem}[Pompage (faible)]
-    Soit $L$ un langage. Supposons $L$ automatique. Soit $w \in L$ alors pour toute décomposition de $w$ de la forme :
-        \[\exists w_1, w_2, w_3 \in L, w = w_1 w_2 w_3 \]
-    \underline{alors} cette décomposition est gonflable. 
+    Soit $L$ un langage. Supposons $L$ automatique. 
+    Soit $N \in \N$, alors pour tout $w \in L$ tel que $ |w| \leqslant N$, $w$ admet une décomposition 
+    de la forme : 
+        \[\exists w_1, w_2, w_3 \in L, w = w_1 w_2 w_3 \quad \text{avec } w_2 \not  = \varepsilon \]
+    telle que cette décomposition soit gonflable :
         \[ \text{ i.e } \forall k \in \N, w_1 w_2 ^k w_3 \in L \]
 \end{theorem} 
 
 Ce théorème n'est pas idéal pour montrer qu'un langage est automatique. En revanche, sa contraposé de la forme :
-\begin{quote}
-    \textbf{Non Pompable $ \Longrightarrow $ Non Automatique}
-\end{quote}
-
+    \[ \text{Non Pompable } \Longrightarrow \text{Non Automatique} \]  
 Est en pratique très utilisée pour montrer qu'un langage n'est pas automatique. 
+
+\begin{proposition}
+    Ainsi, soit $L$ un langage. Pour montrer que $L$ n'est pas pompable, on montrera que 
+    pour tout $N \in \N$, il existe $w \in L$ tel que $ |w| \geqslant N$ qui admette une décomposition de la forme : 
+        \[ w = w_1 w_2 w_3 \quad \quad \text{avec } w_2 \not  = \varepsilon \] 
+    telle que : 
+        \[ \exists k \in \N, w_1 w_2^k w_3 \not \in L \] 
+\end{proposition}
+
